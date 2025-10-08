@@ -1,0 +1,281 @@
+<!DOCTYPE html><html lang="ru"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Тест для техников — 40 вопросов</title>
+<style>
+:root{--bg:#0b1020;--card:#151a30;--line:#23304f;--text:#e7eaf6;--muted:#9fb0d1;--accent:#3b82f6;--bad:#ef4444;--warn:#f59e0b;--glass:#0f1530cc}
+*{box-sizing:border-box}body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:24px;background:var(--bg);color:var(--text)}
+.container{max-width:980px;margin:0 auto}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin:16px 0}
+label{display:block;font-weight:600;margin:10px 0 6px}input[type=text],input[type=email],input[type=tel]{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0f1530;color:#e7eaf6}
+.btn{padding:10px 16px;border:0;border-radius:12px;background:var(--accent);color:#fff;cursor:pointer;font-weight:700}.hidden{display:none}
+.stickywrap{position:sticky;top:0;z-index:1000;padding-top:8px}.stickybg{position:absolute;inset:0;height:64px;background:var(--glass);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.header{position:relative;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:8px 0}
+.pill{background:#0f1530;border:1px solid var(--line);padding:8px 12px;border-radius:999px;color:#9fb0d1}
+.timer.warn{color:var(--warn)}.timer.urgent{color:var(--bad);font-weight:800}.qhead{font-weight:600}.topic{margin-left:8px;color:#93c5fd;font-size:12px}
+.options label{display:block;padding:10px 12px;border-radius:12px;border:1px solid var(--line);margin:8px 0;cursor:pointer}.options input{margin-right:8px}
+.incorrect{background:rgba(239,68,68,.15);border-color:#7f1d1d}.hint{color:#fca5a5;font-size:13px;margin-top:6px}.note{color:#9fb0d1;font-size:13px}
+.float-timer{position:fixed;right:16px;bottom:16px;background:#0f1530;border:1px solid var(--line);border-radius:14px;padding:10px 12px;color:#e7eaf6;font-weight:800;z-index:2000}
+.float-timer.urgent{color:var(--bad)}
+</style></head><body><div class="container">
+<div id="page-welcome"><h1>Тест для техников</h1><div class="card">
+<p class="note">Введите данные и нажмите «Начать тест». Будет сгенерировано 40 вопросов из всех тем. Время — 80 минут.</p>
+<label for="fio">Фамилия и Имя</label><input id="fio" type="text" placeholder="Иванов Иван"/>
+<label for="phone">Телефон</label><input id="phone" type="tel" placeholder="+7 900 000-00-00"/>
+<label for="email">Электронная почта</label><input id="email" type="email" placeholder="user@example.com"/>
+<div style="margin-top:14px;"><button id="btnStart" class="btn">Начать тест</button></div></div></div>
+
+<div id="page-quiz" class="hidden">
+<div class="stickywrap" aria-hidden="true"><div class="stickybg"></div>
+  <div class="header" aria-hidden="false">
+    <div class="pill">Участник: <span id="who"></span></div>
+    <div class="pill">Вопросов: <span id="count"></span></div>
+    <div class="pill timer" id="timer">80:00</div>
+  </div>
+</div>
+<div id="quiz"></div>
+<div style="margin:14px 0;"><button id="btnFinish" class="btn">Завершить тест</button> <span class="note" id="warning"></span>
+<div id="sendStatus" class="note" style="margin-top:8px;"></div></div>
+<div id="result" class="card hidden" aria-live="polite"></div>
+</div></div>
+<div id="floatTimer" class="float-timer hidden" aria-live="polite">80:00</div>
+
+<script>
+const TARGET={"Сети":6,"Аудио":6,"Видео":10,"DSP":6,"Оптика":6,"Монтаж":6},TEST_SIZE=40,FULL_TIME_SEC=80*60;
+let remaining=FULL_TIME_SEC,timerId=null,finished=false,picked=[];
+const Q=(t,o,c,topic,hint)=>({text:t,opts:o,correct:c,topic,hint});
+const A=[];
+// --- Сети (15)
+A.push(Q("Какой стандарт PoE чаще всего используют для IP-камер?",["802.3af","802.3at","802.3bt","802.11ac"],0,"Сети","Базового PoE достаточно для большинства камер."),
+Q("Максимальная длина сегмента кабеля Cat6 без повторителей:",["50 м","100 м","250 м","500 м"],1,"Сети","Стандартная длина медного сегмента Ethernet."),
+Q("Какой диапазон частот работает в Wi‑Fi одновременно с микроволновыми печами?",["5 ГГц","2.4 ГГц","900 МГц","60 ГГц"],1,"Сети","Этот диапазон часто перегружен бытовыми устройствами."),
+Q("Для чего нужен trunk‑порт в коммутаторе?",["Только серверы","Передача нескольких VLAN","Резервирование","Повышение скорости"],1,"Сети","Trunk переносит теги 802.1Q."),
+Q("Какой тип кабеля выбирают при сильных электромагнитных помехах?",["UTP","STP","Коаксиал","HDMI"],1,"Сети","Экранирование снижает наводки."),
+Q("Какой разъём применяют в оптических SFP‑модулях?",["RJ‑45","LC","SCART","BNC"],1,"Сети","Компактный push‑pull коннектор."),
+Q("Что произойдёт, если соединить два коммутатора несколькими кабелями без STP?",["Повысится скорость","Возникнут петли и шторм","Кабель перегорит","Ничего"],1,"Сети","Широковещание «ходит по кругу»."),
+Q("Что означает Cat6A в кабеле?",["Аудио","Оптоволокно","Категория витой пары","HDMI"],2,"Сети","Augmented — для 10GBase‑T."),
+Q("Какой стандарт Ethernet поддерживает 1 Гбит/с?",["100Base‑T","1000Base‑T","10GBase‑T","10Base‑2"],1,"Сети","Смотрите на «1000»."),
+Q("Для чего используют патч‑панель?",["Увеличение скорости","Удобная коммутация","Усиление","Удлинение"],1,"Сети","Организация и маркировка линий."),
+Q("Что такое VLAN?",["Локальный мост","Логическая сегментация сети","Тип шифрования","Марка кабеля"],1,"Сети","802.1Q разделяет сеть логически."),
+Q("Какой разъём 8P8C часто называют RJ‑45?",["RJ‑11","RJ‑12","RJ‑45","RJ‑9"],2,"Сети","8 позиций и 8 контактов."),
+Q("Что такое QoS?",["Сжатие пакетов","Приоритезация трафика","Запись логов","ARP‑кэш"],1,"Сети","Разные классы обслуживания трафика."),
+Q("Какой частный диапазон IP‑адресов?",["203.0.113.0/24","192.168.0.0/16","198.51.100.0/24","8.8.8.0/24"],1,"Сети","Частные адреса для LAN."),
+Q("Что даёт LACP (802.3ad)?",["VLAN‑теги","Агрегацию каналов","PoE","NAT"],1,"Сети","Объединение нескольких линков."));
+// --- Аудио (15)
+A.push(Q("Какой микрофон требует фантомного питания +48 В?",["Динамический","Конденсаторный","Ленточный","Электретный"],1,"Аудио","Необходима поляризация капсюля."),
+Q("Зачем нужен запас Headroom?",["Избежать перегрузки","Увеличить громкость","Снизить шум","Выровнять фазу"],0,"Аудио","Чтобы пики не клиппировали."),
+Q("Что показывает SPL?",["Уровень шума","Звуковое давление в дБ","Сигнал/шум","Чувствительность"],1,"Аудио","Измеряется шумомером/микрофоном."),
+Q("Для чего нужен DI‑бокс?",["Усиление басов","Балансировка сигнала","Разделение частот","Увеличение чувствительности"],1,"Аудио","Согласует импеданс, небаланс→баланс."),
+Q("Какой разъём чаще используют для микрофона?",["RCA","TRS","XLR","Mini‑Jack"],2,"Аудио","Трёхконтактный с защёлкой."),
+Q("Что означает кардиоидная диаграмма?",["Всесторонняя","Спереди и немного сбоку","Сзади","Двунаправленная"],1,"Аудио","Максимум спереди, минимум сзади."),
+Q("Что делает компрессор?",["Усиливает","Снижает динамику","Убирает реверб","Басы"],1,"Аудио","Контролирует пики."),
+Q("Что означает параметр SNR?",["Скорость","Сигнал/шум","Headroom","Громкость"],1,"Аудио","Чем выше — тем чище сигнал."),
+Q("Какой диапазон слышимости у человека?",["2–2000 Гц","20–20 000 Гц","200–200 000 Гц","2–200 кГц"],1,"Аудио","Классический ориентир."),
+Q("Для чего применяют эквалайзер?",["Изменение АЧХ","Усиление","Измерение Headroom","Баланс фаз"],0,"Аудио","Коррекция тембра."),
+Q("Какой XLR‑пин обычно «земля»?",["1","2","3","Нет фиксированного"],0,"Аудио","Пин 1 — экран/земля."),
+Q("Что делает лимитер?",["Ограничивает пики","Добавляет реверб","Усиливает бас","Изменяет фазу"],0,"Аудио","«Жёсткий потолок» по уровню."),
+Q("Почему балансная линия устойчива к наводкам?",["Больше ток","Дифференциальный приём","Толще кабель","Низкий импеданс"],1,"Аудио","Помехи вычитаются."),
+Q("Какой уровень «проф.» линейного сигнала?",["–10 dBV","+4 dBu","0 dBV","+14 dBu"],1,"Аудио","Стандарт про‑оборудования."),
+Q("Что делает high‑pass фильтр на микшере?",["Обрезает НЧ","Обрезает ВЧ","Добавляет задержку","Суммирует каналы"],0,"Аудио","Убирает гул/ветер/шаги."));
+// --- Видео (25)
+A.push(Q("Какое разрешение соответствует Full HD?",["1280×720","1920×1080","2560×1440","3840×2160"],1,"Видео","Full HD — 1080 строк."),
+Q("Какое разрешение у 4K UHD?",["1920×1080","2560×1440","3840×2160","7680×4320"],2,"Видео","Потребительский 4K = 3840×2160."),
+Q("Что означает прогрессивная развёртка?",["Кадр целиком","Только чётные строки","Только нечётные","Субдискретизация"],0,"Видео","В отличие от интерлейса."),
+Q("Что такое HDR?",["Частота кадров","Высокий динамический диапазон","Сжатие","Развёртка"],1,"Видео","Больше деталей в тенях и светах."),
+Q("Какой интерфейс полностью цифровой?",["VGA","HDMI","BNC","SCART"],1,"Видео","Передаёт и видео, и аудио."),
+Q("Какой интерфейс поддерживает цепочку мониторов?",["HDMI","DisplayPort","RCA","VGA"],1,"Видео","MST — Multi‑Stream Transport."),
+Q("Что передаёт SDI?",["Аналоговое видео","Цифровое видео","Аудио","Ethernet"],1,"Видео","Коаксиал 75 Ом."),
+Q("Что означает Y в YUV?",["Цветность","Яркость","Синхронизация","Частота"],1,"Видео","Компонента светлоты."),
+Q("Что хранится в EDID?",["Сеть","Параметры дисплея","Аудио","Пароль"],1,"Видео","Список поддерживаемых режимов."),
+Q("Что означает HDCP?",["Защита контента","Кодек","Интерфейс","Память"],0,"Видео","Шифрование между источником и дисплеем."),
+Q("Что делает функция Keystone?",["Коррекция трапеции","Яркость","Цвет","Резкость"],0,"Видео","Компенсация при смещённом проекторе."),
+Q("Что такое aspect ratio?",["Соотношение сторон","FPS","HDR","Формат"],0,"Видео","Напр., 16:9, 4:3."),
+Q("Какой стандарт HDTV?",["Rec.601","Rec.709","Rec.2020","NTSC"],1,"Видео","Цветовое пространство HDTV."),
+Q("Что означает Refresh Rate?",["Частота обновления","FPS","Пиксели","Дискретизация"],0,"Видео","Герцы (Гц)."),
+Q("Какая технология использует микрозеркала?",["LCD","DLP","OLED","Plasma"],1,"Видео","DMD‑чип с микрозеркалами."),
+Q("Какой кабель применяют для HDMI на большие расстояния?",["Коаксиал","Оптика","RCA","Cat5e"],1,"Видео","Оптические HDMI/конвертеры."),
+Q("Что такое chroma subsampling?",["Понижение цветового разрешения","Увеличение контраста","Баланс белого","Повышение FPS"],0,"Видео","4:4:4 → 4:2:2/4:2:0."),
+Q("В каком диапазоне работает HDMI 2.0?",["До 4K@60Hz","Только 720p","До 8K@120Hz","Только аудио"],0,"Видео","Для 4K/60 при ряде условий."),
+Q("Что означает Rolling Shutter?",["Построчное считывание матрицы","Глобальная экспозиция","HDR","Частота"],0,"Видео","«Желе» на быстром движении."),
+Q("Какое разрешение соответствует 8K UHD?",["1920×1080","2560×1440","3840×2160","7680×4320"],3,"Видео","В четыре раза больше 4K по пикселям."),
+Q("Что такое EDID Override?",["Замена видеокарты","Подмена параметров дисплея","Смена интерфейса","Отключение HDCP"],1,"Видео","Источник «видит» другие режимы."),
+Q("Для чего калибровка баланса белого?",["Снизить задержку","Сделать нейтральный серый","Повысить контраст","Включить HDR"],1,"Видео","Белое выглядит белым."),
+Q("Какой интерфейс поддерживает ARC/eARC?",["VGA","DVI","HDMI","SDI"],2,"Видео","Возвратный аудиоканал в HDMI."),
+Q("Что даёт Rec.2020 по сравнению с Rec.709?",["Уже гамма","Шире цветовой охват","Меньше битность","Моно"],1,"Видео","Шире треугольник цветности."),
+Q("Что делает «Overscan»?",["Обрезает края изображения","Увеличивает FPS","Меняет HDR","Снижает яркость"],0,"Видео","Актуально для вещательных источников."));
+// --- DSP (12)
+A.push(Q("Что делает компрессор?",["Сжимает динамический диапазон","Усиливает","Убирает шум","Меняет фазу"],0,"DSP","Контроль пиков выше порога."),
+Q("Что делает лимитер?",["Ограничивает пики","Усиливает","Фильтрует","Балансирует"],0,"DSP","Жёсткий потолок по уровню."),
+Q("Что делает noise gate?",["Обрезает сигнал ниже порога","Усиливает","Добавляет реверб","Снижает шум"],0,"DSP","Закрывается на тихих участках."),
+Q("Что означает attack?",["Скорость срабатывания","Порог","Частота","Фаза"],0,"DSP","Как быстро включается обработка."),
+Q("Что означает release?",["Время возврата","Каналы","Частота","Усиление"],0,"DSP","Как быстро выходит из обработки."),
+Q("Что делает high‑pass?",["Пропускает ВЧ, обрезает НЧ","Пропускает НЧ","Меняет фазу","Усиливает"],0,"DSP","НЧ‑срез."),
+Q("Для чего нужен de‑esser?",["Убирает сибилянты","Убирает бас","Усиливает ВЧ","Баланс фаз"],0,"DSP","Динамика в ВЧ‑области."),
+Q("Что означает side‑chain?",["Управление компрессором с другого канала","Сведение в моно","Громкость","Фильтр"],0,"DSP","Ducking музыки речью."),
+Q("Что делает reverb?",["Добавляет отражения","Убирает шум","Усиливает","Меняет частоту"],0,"DSP","Имитация помещения."),
+Q("Что делает delay?",["Добавляет задержку","Усиливает","Убирает бас","Меняет фазу"],0,"DSP","Эхо‑повторы."),
+Q("Что такое threshold в компрессоре?",["Уровень срабатывания компрессии","Скорость реверберации","Частота среза","Добротность"],0,"DSP","Выше этого уровня компрессия работает."),
+Q("Что означает ratio в компрессоре?",["Степень сжатия выше порога","Изменение фазы","Скорость атаки","Частота дискретизации"],0,"DSP","4:1 уменьшает превышение в 4 раза."));
+// --- Оптика (15)
+A.push(Q("Что такое core в оптоволокне?",["Сердечник","Оболочка","Кевлар","Защита"],0,"Оптика","По сердечнику идёт свет."),
+Q("Диаметр SMF:",["8–10 мкм","50 мкм","62.5 мкм","125 мкм"],0,"Оптика","Одномод — малый сердечник."),
+Q("Диаметр MMF:",["8–10 мкм","50 или 62.5 мкм","100 мкм","125 мкм"],1,"Оптика","Классы OM2/OM3/OM4."),
+Q("Длина волны MMF:",["650","850","1310","1550"],1,"Оптика","Часто используются VCSEL‑источники."),
+Q("Единица затухания:",["дБ/км","дБ/м","Вт/м","Ом/м"],0,"Оптика","Нормируется на километр."),
+Q("Что измеряет OTDR?",["Потери и отражения","Мощность","Цвет","Температуру"],0,"Оптика","Строит трассировку событий."),
+Q("Какой коннектор байонетный?",["ST","SC","LC","MPO"],0,"Оптика","Фиксация поворотом."),
+Q("Что означает LSZH?",["Низкий дым и без галогена","Гибкость","Сила","Полировка"],0,"Оптика","Безгалогеновая оболочка."),
+Q("Что означает UPC?",["Прямая полировка","Угловая полировка","Буфер","Тип волокна"],0,"Оптика","Отражения выше, чем у APC."),
+Q("Что означает APC?",["Угловая полировка","Прямая полировка","Буфер","Оболочка"],0,"Оптика","Скошенный торец снижает отражения."),
+Q("Что означает модовая дисперсия?",["Расширение импульса","Затухание","Перегрев","Потери"],0,"Оптика","Актуально для многомода."),
+Q("Что означает OS2?",["Одномод для больших дистанций","Многомод","Аудио","Коаксиал"],0,"Оптика","Одномод наружной прокладки."),
+Q("FTTH означает:",["Fiber To The Home","Fiber To The Hub","Fiber To The Highway","Fiber To The Board"],0,"Оптика","Волокно до дома."),
+Q("FTTB означает:",["Fiber To The Building","Fiber To The Base","Fiber To The Bridge","Fiber To The Board"],0,"Оптика","Волокно до здания."),
+Q("Главная опасность оптоволокна?",["Лазерное излучение и микрочастицы стекла","Напряжение","Шум","Статика"],0,"Оптика","Не смотрите в торец активного волокна."));
+// --- Монтаж (18)
+A.push(Q("Что такое termination кабеля?",["Подключение к разъёму","Срезание","Удлинение","Сварка"],0,"Монтаж","Правильная разделка/обжим/заведение."),
+Q("Инструмент для Keystone?",["Punch‑down","Паяльник","Отвёртка","Кримпер"],0,"Монтаж","Для IDC‑контактов."),
+Q("Что означает Cat6?",["Категория витой пары","Коаксиал","Аудио","HDMI"],0,"Монтаж","Класс параметров канала связи."),
+Q("Что означает 1U?",["44.45 мм","1 см","19 мм","100 мм"],0,"Монтаж","Единица высоты стойки."),
+Q("Для чего патч‑панель?",["Удобная коммутация","Скорость","Шум","Маркировка"],0,"Монтаж","Аккуратные точки коммутации и тесты."),
+Q("Что такое service loop?",["Запас кабеля для обслуживания","Импеданс","Шум","Длина"],0,"Монтаж","Небольшой «хвост» для переобжима."),
+Q("Что означает firestop?",["Противопожарная заделка","Розетки","Скорость","Шум"],0,"Монтаж","Сертифицированные огнестойкие проходки."),
+Q("Зачем цветовая маркировка линий?",["Для удобства обслуживания","Красота","Скорость","Шум"],0,"Монтаж","Быстрый поиск и классификация."),
+Q("Какой кабель для HDMI удлинителей?",["Витая пара","Коаксиал","RCA","Оптика"],0,"Монтаж","HDBaseT/активные удлинители."),
+Q("Что означает HDBaseT?",["Передача HDMI по витой паре","Аудио по RCA","Wi‑Fi","Питание"],0,"Монтаж","До 100 м UTP/STP."),
+Q("Инструмент для RJ‑45?",["Кримпер","Паяльник","Punch‑down","Отвёртка"],0,"Монтаж","Обжим 8P8C коннекторов."),
+Q("Что такое mud ring?",["Рамка в гипсокартоне","Влага","Канал","Кабель"],0,"Монтаж","Монтажная рамка под устройства."),
+Q("Какой кабель для АС?",["Акустический медный","HDMI","Ethernet","RCA"],0,"Монтаж","Подбор сечения по длине/импедансу."),
+Q("Что означает breakout‑кабель?",["Несколько кабелей в одной оболочке","HDMI удлинитель","Коаксиал","USB"],0,"Монтаж","Напр., MPO→LC веер."),
+Q("Что включает as‑built документация?",["Схемы и маршруты после монтажа","Сотрудники","Смета","ТЗ"],0,"Монтаж","Фактическое исполнение объекта."),
+Q("Какой минимальный радиус изгиба для витой пары обычно допускают?",["2 диаметра","4 диаметра","8 диаметров","15 диаметров"],2,"Монтаж","Избегайте острых изгибов — ориентир ~8D."),
+Q("Что важно при протяжке кабеля по лоткам?",["Не превышать усилие протяжки","Окраска кабеля","Прокладка зигзагом","Открытая скрутка"],0,"Монтаж","Иначе риск повредить жилы."),
+Q("Как лучше пересекать силовые линии при необходимости?",["Параллельно на расстоянии 5 см","Параллельно вплотную","Под 90°","Скручивать вместе"],2,"Монтаж","Крест‑пересечение снижает наводки."));
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}}
+function byTopic(){const m={};A.forEach((q,i)=>{(m[q.topic]=m[q.topic]||[]).push(i)});return m}
+function pickQuestions(){const map=byTopic();let idxs=[];for(const t in TARGET){const need=TARGET[t]||0;const pool=(map[t]||[]).slice();shuffle(pool);idxs=idxs.concat(pool.slice(0,need))}
+if(idxs.length<TEST_SIZE){const all=[...Array(A.length).keys()];shuffle(all);for(const i of all){if(!idxs.includes(i)) idxs.push(i); if(idxs.length===TEST_SIZE) break;}}shuffle(idxs);return idxs.map(i=>A[i])}
+function fmt(s){const m=String(Math.floor(s/60)).padStart(2,'0'),x=String(s%60).padStart(2,'0');return `${m}:${x}`}
+function startTimer(){const el=document.getElementById('timer'),warn=document.getElementById('warning'),floatEl=document.getElementById('floatTimer');floatEl.classList.remove('hidden');
+el.textContent=fmt(remaining);floatEl.textContent=fmt(remaining);
+timerId=setInterval(()=>{remaining--;if(remaining<=0){clearInterval(timerId);if(!finished)finishTest();return}
+if(remaining<=600){el.classList.add('urgent');floatEl.classList.add('urgent');el.textContent=fmt(remaining)+" — Ускорьтесь!";floatEl.textContent=fmt(remaining);warn.textContent="Ускорьтесь — осталось менее 10 минут!"}
+else if(remaining<=1200){el.classList.add('warn');el.textContent=fmt(remaining);floatEl.textContent=fmt(remaining);warn.textContent=""}
+else{el.textContent=fmt(remaining);floatEl.textContent=fmt(remaining);warn.textContent=""}},1000)}
+function validateContact(){const fio=document.getElementById('fio').value.trim(),phone=document.getElementById('phone').value.trim(),email=document.getElementById('email').value.trim();if(!fio||!phone||!email) return false;return /.+@.+\..+/.test(email)}
+function renderQuiz(arr){const quiz=document.getElementById('quiz');quiz.innerHTML='';arr.forEach((q,i)=>{const card=document.createElement('div');card.className='card';card.dataset.index=i;
+const head=document.createElement('div');head.className='qhead';head.innerHTML=(i+1)+'. '+q.text+` <span class="topic">[${q.topic}]</span>`;
+const opts=document.createElement('div');opts.className='options';q.opts.forEach((opt,j)=>{const id=`q${i}_o${j}`;const lab=document.createElement('label');lab.htmlFor=id;
+const inp=document.createElement('input');inp.type='radio';inp.name='q'+i;inp.id=id;inp.value=j;const span=document.createElement('span');span.textContent=' '+String.fromCharCode(65+j)+') '+opt;
+lab.appendChild(inp);lab.appendChild(span);opts.appendChild(lab)});const hint=document.createElement('div');hint.className='hint hidden';hint.textContent='Подсказка: '+q.hint;
+card.appendChild(head);card.appendChild(opts);card.appendChild(hint);quiz.appendChild(card)})}
+function finishTest(){finished=true;if(timerId)clearInterval(timerId);let ok=0,wrong=0,skip=0;const quiz=document.getElementById('quiz');
+picked.forEach((q,i)=>{const labels=quiz.querySelectorAll(`.card[data-index="${i}"] .options label`);let chosen=-1;labels.forEach(l=>{const r=l.querySelector('input');if(r&&r.checked)chosen=parseInt(r.value,10)});
+if(chosen===-1){skip++;} else if(chosen===q.correct){ok++;} else {wrong++; labels.forEach(l=>{const r=l.querySelector('input');if(r&&r.checked)l.classList.add('incorrect')}); const hint=quiz.querySelector(`.card[data-index="${i}"] .hint`);if(hint)hint.classList.remove('hidden');}});
+const total=picked.length, pctOk=Math.round(ok/total*100), pctWrong=Math.round(wrong/total*100), pctSkip=Math.round(skip/total*100); const pass=pctOk>=80;
+const box=document.getElementById('result');box.classList.remove('hidden');
+box.innerHTML=`<h3>Результат</h3>
+  <p><strong>${pctOk}%</strong> — ${pass?'тест сдан ✅':'тест не сдан ❌'}</p>
+  <ul style="margin:8px 0 0 18px;line-height:1.6">
+    <li>Правильных: <strong>${ok}</strong> из ${total} (${pctOk}%)</li>
+    <li>Неправильных: <strong>${wrong}</strong> из ${total} (${pctWrong}%)</li>
+    <li>Пропущено: <strong>${skip}</strong> из ${total} (${pctSkip}%)</li>
+  </ul>
+  <p class="note">Неправильные ответы подсвечены красным. Под каждым неверным вопросом показана подсказка. Правильные ответы не раскрываются.</p>`;
+document.querySelectorAll('input[type=radio]').forEach(r=>r.disabled=true);document.getElementById('btnFinish').disabled=true;document.getElementById('floatTimer').classList.add('hidden')}
+document.getElementById('btnStart').addEventListener('click',()=>{if(!validateContact()){alert("Пожалуйста, заполните ФИО, Телефон и E-mail корректно.");return}
+document.getElementById('page-welcome').classList.add('hidden');picked=pickQuestions();renderQuiz(picked);
+document.getElementById('who').textContent=document.getElementById('fio').value+' • '+document.getElementById('phone').value+' • '+document.getElementById('email').value;
+document.getElementById('count').textContent=picked.length;document.getElementById('page-quiz').classList.remove('hidden');remaining=FULL_TIME_SEC;finished=false;startTimer()});
+document.getElementById('btnFinish').addEventListener('click',finishTest);
+
+// === QUIZ EMAIL ADDON START ===
+(function(){
+  // Track quiz start as soon as user clicks "Начать тест" (capture phase -> раньше основного обработчика)
+  try {
+    const btnStart = document.getElementById('btnStart');
+    if (btnStart) {
+      btnStart.addEventListener('click', function(){
+        if (!window.quizStart) window.quizStart = Date.now();
+      }, true);
+    }
+  } catch(e){ console.warn('quizStart hook failed', e); }
+
+  // Helpers
+  window.quizStart = window.quizStart || null;
+  function formatDuration(ms){
+    const totalSec = Math.floor(ms/1000);
+    const m = Math.floor(totalSec/60);
+    const s = totalSec % 60;
+    return m + ' мин ' + String(s).padStart(2,'0') + ' с';
+  }
+  async function sendResults(payload){
+    var statusEl = document.getElementById('sendStatus');
+    if (statusEl) statusEl.textContent = 'Отправляю результаты на почту...';
+    try{
+      var resp = await fetch('/.netlify/functions/sendResults', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if (!resp.ok) throw new Error('HTTP '+resp.status);
+      var data = {};
+      try { data = await resp.json(); } catch(_){}
+      if (statusEl) statusEl.textContent = (data && data.message) ? data.message : 'Результаты отправлены на почту.';
+    } catch(err){
+      console.error(err);
+      if (statusEl) statusEl.textContent = 'Не удалось отправить результаты на почту. Попробуйте позже.';
+    }
+  }
+
+  // Wrap original finishTest without переписывания его тела
+  try {
+    var _origFinishTest = window.finishTest;
+    if (typeof _origFinishTest === 'function') {
+      window.finishTest = function(){
+        _origFinishTest();
+        try {
+          var quiz = document.getElementById('quiz');
+          var ok=0, wrong=0, skip=0;
+          if (quiz && Array.isArray(window.picked)) {
+            window.picked.forEach(function(q,i){
+              var labels = quiz.querySelectorAll('.card[data-index="'+i+'"] .options label');
+              var chosen = -1;
+              labels.forEach(function(l){
+                var r = l.querySelector('input');
+                if (r && r.checked) chosen = parseInt(r.value, 10);
+              });
+              if (chosen === -1) { skip++; }
+              else if (chosen === q.correct) { ok++; }
+              else { wrong++; }
+            });
+          }
+          var total = (window.picked && window.picked.length) ? window.picked.length : (ok+wrong+skip);
+          var pctOk = total ? Math.round(ok/total*100) : 0;
+          var durationMs = window.quizStart ? (Date.now() - window.quizStart) : 0;
+
+          var payload = {
+            user: {
+              name: (document.getElementById('fio')||{}).value ? document.getElementById('fio').value.trim() : '',
+              phone: (document.getElementById('phone')||{}).value ? document.getElementById('phone').value.trim() : '',
+              email: (document.getElementById('email')||{}).value ? document.getElementById('email').value.trim() : ''
+            },
+            duration_ms: durationMs,
+            duration_human: formatDuration(durationMs),
+            results: {
+              correct: ok,
+              incorrect: wrong,
+              skipped: skip,
+              total: total,
+              percent: pctOk
+            }
+          };
+          sendResults(payload);
+        } catch(e){
+          console.error('post-finish send failed', e);
+        }
+      };
+    }
+  } catch(e){ console.warn('finishTest wrapper failed', e); }
+})();
+// === QUIZ EMAIL ADDON END ===
+</script></body></html>
